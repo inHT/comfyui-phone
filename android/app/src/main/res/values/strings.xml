@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">基础文生图</string>
+    <string name="refresh">刷新</string>
+    <string name="server">服务器</string>
+    <string name="default_server_url">https://frp-aim.com:23569</string>
+</resources>

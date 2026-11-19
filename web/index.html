@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F172A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="出图">
+  <title>基础文生图</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <div class="phone">
+    <section id="login-screen" class="login">
+      <div class="login-card">
+        <p class="eyebrow">Krea-2 · 固定工作流</p>
+        <h1>基础文生图</h1>
+        <p class="lede">手机只改提示词和参数。出图在电脑上跑，完成后收进这台手机的图库。</p>
+        <form id="login-form">
+          <label for="password">访问密码</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+          <p id="login-error" class="error" hidden></p>
+          <button id="login-button" type="submit">进入</button>
+        </form>
+        <p id="login-status" class="status-line">正在检查电脑…</p>
+      </div>
+    </section>
+
+    <div id="app" hidden>
+      <header class="top">
+        <div>
+          <p class="eyebrow">Krea-2 · 固定工作流</p>
+          <h1>基础文生图</h1>
+        </div>
+        <p id="link-status" class="pill">检查中</p>
+      </header>
+
+      <main>
+        <section id="view-create">
+          <p id="form-error" class="error banner" hidden></p>
+
+          <section class="card" aria-labelledby="lora-title">
+            <div class="card-head">
+              <span class="index">01</span>
+              <h2 id="lora-title">LoRA</h2>
+              <button id="add-lora" class="text-button" type="button">添加</button>
+            </div>
+            <p class="hint">和电脑上的 CR LoRA Stack 一样，可以叠多个。每个单独开关，模型权重和 CLIP 权重分开调，最多 9 个。</p>
+            <div id="lora-list"></div>
+          </section>
+
+          <section class="card" aria-labelledby="sample-title">
+            <div class="card-head">
+              <span class="index">02</span>
+              <h2 id="sample-title">采样与分辨率</h2>
+              <button id="reset-sample" class="text-button" type="button">恢复推荐</button>
+            </div>
+            <p class="hint">分辨率按 Krea-2 的选择器计算，约 100 万像素。</p>
+            <div id="aspects" class="chips" role="radiogroup" aria-label="分辨率"></div>
+            <div class="split">
+              <label>
+                采样器
+                <select id="sampler"></select>
+              </label>
+              <label>
+                调度器
+                <select id="scheduler"></select>
+              </label>
+            </div>
+            <div class="slider-row">
+              <label for="steps">步数 <output id="steps-out">8</output></label>
+              <input id="steps" type="range" min="1" max="40" step="1" value="8">
+            </div>
+            <div class="slider-row">
+              <label for="cfg">CFG <output id="cfg-out">1.0</output></label>
+              <input id="cfg" type="range" min="1" max="12" step="0.5" value="1">
+            </div>
+            <p class="hint">这套工作流的推荐值是 8 步、CFG 1、euler / simple。</p>
+            <div class="seed-row">
+              <label for="seed">种子</label>
+              <input id="seed" type="number" min="0" step="1" placeholder="随机" disabled>
+              <button id="seed-random" class="switch seed-switch" type="button" role="switch" aria-checked="true">
+                <span class="switch-knob"></span>
+                <span class="switch-text">随机</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="prompt-title">
+            <div class="card-head">
+              <span class="index">03</span>
+              <h2 id="prompt-title">底模与提示词</h2>
+            </div>
+            <label for="unet">底模</label>
+            <select id="unet"></select>
+            <label for="prompt">提示词</label>
+            <textarea id="prompt" rows="6" maxlength="4000" placeholder="描述你要的画面"></textarea>
+          </section>
+
+          <section id="result" class="card result" hidden>
+            <h2>这一张</h2>
+            <p id="progress-text" aria-live="polite">准备中</p>
+            <div class="bar" aria-hidden="true"><span id="progress-fill"></span></div>
+            <img id="result-image" alt="" hidden>
+          </section>
+        </section>
+
+        <section id="view-gallery" hidden>
+          <div class="gallery-head">
+            <h2>图库</h2>
+            <button id="sync" class="text-button" type="button">从电脑补全</button>
+          </div>
+          <p id="gallery-empty" class="empty">还没有图。出完的图会留在这台手机上。</p>
+          <div id="gallery" class="gallery"></div>
+        </section>
+      </main>
+
+      <div id="generate-bar" class="generate-bar">
+        <button id="generate" type="button">开始出图</button>
+      </div>
+      <nav class="tabs">
+        <button id="tab-create" class="tab is-on" type="button">出图</button>
+        <button id="tab-gallery" class="tab" type="button">图库</button>
+      </nav>
+    </div>
+  </div>
+
+  <dialog id="viewer">
+    <button id="viewer-close" class="text-button" type="button">关闭</button>
+    <img id="viewer-image" alt="">
+    <p id="viewer-prompt"></p>
+    <p id="viewer-meta" class="hint"></p>
+    <button id="viewer-delete" class="text-button danger" type="button">从手机移除</button>
+  </dialog>
+  <script src="/assets/app.js"></script>
+</body>
+</html>

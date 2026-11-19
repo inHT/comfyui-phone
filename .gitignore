@@ -1,0 +1,13 @@
+.venv/
+data/
+__pycache__/
+*.pyc
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.apk
+
+# 含访问密码和隧道地址，只留在本机
+内网穿透隧道信息.txt
